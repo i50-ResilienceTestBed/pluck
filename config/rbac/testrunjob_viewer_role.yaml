@@ -1,0 +1,23 @@
+# permissions for end users to view testrunjobs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: pluck
+    app.kubernetes.io/managed-by: kustomize
+  name: testrunjob-viewer-role
+rules:
+- apiGroups:
+  - chaos.galah-monitoring.io
+  resources:
+  - testrunjobs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - chaos.galah-monitoring.io
+  resources:
+  - testrunjobs/status
+  verbs:
+  - get

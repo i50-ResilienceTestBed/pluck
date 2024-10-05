@@ -1,0 +1,9 @@
+apiVersion: chaos.galah-monitoring.io/v1
+kind: TestRun
+metadata:
+  labels:
+    app.kubernetes.io/name: pluck
+    app.kubernetes.io/managed-by: kustomize
+  name: testrun-sample
+spec:
+  # TODO(user): Add fields here

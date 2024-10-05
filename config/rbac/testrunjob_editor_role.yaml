@@ -1,0 +1,27 @@
+# permissions for end users to edit testrunjobs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: pluck
+    app.kubernetes.io/managed-by: kustomize
+  name: testrunjob-editor-role
+rules:
+- apiGroups:
+  - chaos.galah-monitoring.io
+  resources:
+  - testrunjobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - chaos.galah-monitoring.io
+  resources:
+  - testrunjobs/status
+  verbs:
+  - get

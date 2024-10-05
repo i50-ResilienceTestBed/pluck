@@ -1,0 +1,35 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - chaos.galah-monitoring.io
+  resources:
+  - testrunjobs
+  - testruns
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - chaos.galah-monitoring.io
+  resources:
+  - testrunjobs/finalizers
+  - testruns/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - chaos.galah-monitoring.io
+  resources:
+  - testrunjobs/status
+  - testruns/status
+  verbs:
+  - get
+  - patch
+  - update
