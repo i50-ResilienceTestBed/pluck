@@ -30,7 +30,8 @@ import (
 type TestRunJobSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
+	//+kubebuilder:validation:MinLength=0
+	TestName string `json:"testName"`
 	//+kubebuilder:validation:MinLength=0
 	ServiceAccountName string `json:"serviceAccount"`
 	//+kubebuilder:validation:MinLength=0
@@ -44,7 +45,6 @@ type TestRunJobSpec struct {
 	//+kubebuilder:validation:MinLength=0
 	Args string `json:"args"`
 
-	//+kubebuilder:validation:MinLength=0
 	Schedule CronSchedule `json:"schedule"`
 
 	// +kubebuilder:validation:Minimum=0

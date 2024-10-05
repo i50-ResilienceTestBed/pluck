@@ -43,7 +43,7 @@ type TestRunJobReconciler struct {
 }
 
 var (
-	scheduledTimeAnnotation = "batch.tutorial.kubebuilder.io/scheduled-at"
+	scheduledTimeAnnotation = "chaos.galah-monitoring.io/scheduled-at"
 )
 
 type Clock interface {
