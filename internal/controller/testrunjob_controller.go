@@ -59,16 +59,10 @@ func (_ realClock) Now() time.Time { return time.Now() }
 // +kubebuilder:rbac:groups=chaos.galah-monitoring.io,resources=testrunjobs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=chaos.galah-monitoring.io,resources=testrunjobs/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=chaos.galah-monitoring.io,resources=testrunjobs/finalizers,verbs=update
+// +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=batch,resources=jobs/status,verbs=get;
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the TestRunJob object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.0/pkg/reconcile
 func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
@@ -310,18 +304,29 @@ func getNextSchedule(job *chaosv1.TestRunJob, now time.Time) (lastMissed time.Ti
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *TestRunJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if r.Clock == nil {
+		r.Clock = realClock{}
+	}
+
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &kbatch.Job{}, jobOwnerKey, func(rawObj client.Object) []string {
+		job := rawObj.(*kbatch.Job)
+		owner := metav1.GetControllerOf(job)
+		if owner == nil {
+			return nil
+		}
+
+		if owner.APIVersion != apiGVStr || owner.Kind != "TestRunJob" {
+			return nil
+		}
+
+		return []string{owner.Name}
+	}); err != nil {
+		return err
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&chaosv1.TestRunJob{}).
-		Owns(&corev1.ConfigMap{}).
-		Owns(&corev1.ConfigMap{}).
-		//Watches(
-		//	&corev1.ConfigMap{},
-		//	handler.EnqueueRequestsFromMapFunc(r.findObjectsForConfigMap),
-		//	builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
-		//).
-		For(&chaosv1.TestRunJob{}).
-		Owns(&corev1.ConfigMap{}).
-		//Watches()
+		Owns(&kbatch.Job{}).
+		Named("cronjob").
 		Complete(r)
 
 }
