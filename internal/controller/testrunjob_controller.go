@@ -236,6 +236,7 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+	TestRunJobReconcileTotal.WithLabelValues(testRunJob.Name)
 
 	return ctrl.Result{}, nil
 }
@@ -304,6 +305,7 @@ func getNextSchedule(job *chaosv1.TestRunJob, now time.Time) (lastMissed time.Ti
 			return time.Time{}, time.Time{}, fmt.Errorf("too many missed start times (> 100)")
 		}
 	}
+
 	return lastMissed, sched.Next(now), nil
 }
 

@@ -166,6 +166,9 @@ spec:
                 format: int32
                 minimum: 0
                 type: integer
+              image:
+                minLength: 0
+                type: string
               jobTemplate:
                 description: |-
                   // Specifies the job that will be created when executing a CronJob.
@@ -226,6 +229,7 @@ spec:
                 type: integer
             required:
             - args
+            - image
             - jobTemplate
             - schedule
             - serviceAccount

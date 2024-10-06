@@ -7,7 +7,7 @@ metadata:
   name: testrunjob-sample
 spec:
   testName: "k6-test"
-  serviceAccountName: "k6-galah-testbed"
+  serviceAccount: "k6-galah-testbed"
   scriptConfigMap: ""
   envConfigMap: ""
   env:
@@ -17,7 +17,7 @@ spec:
   startingDeadlineSeconds: 60
   jobTemplate:
     labels:
-      - "hello": "goodbye"
+      "hello": "goodbye"
     annotations:
       "goodbye": "hello"
 

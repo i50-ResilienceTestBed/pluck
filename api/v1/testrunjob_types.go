@@ -32,7 +32,7 @@ type TestRunJobSpec struct {
 	//+kubebuilder:validation:MinLength=0
 	TestName string `json:"testName"`
 	//+kubebuilder:validation:MinLength=0
-	ServiceAccountName string `json:"serviceAccount"`
+	ServiceAccount string `json:"serviceAccount"`
 	//+kubebuilder:validation:MinLength=0
 	ScriptConfigMap string `json:"scriptConfigMap,omitempty"`
 	//+kubebuilder:validation:MinLength=0
@@ -45,6 +45,9 @@ type TestRunJobSpec struct {
 	Args string `json:"args"`
 
 	Schedule CronSchedule `json:"schedule"`
+
+	//+kubebuilder:validation:MinLength=0
+	Image string `json:"image"`
 
 	// +kubebuilder:validation:Minimum=0
 	// +optional

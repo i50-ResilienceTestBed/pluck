@@ -24,7 +24,7 @@ func constructJobForTestRunJob(testRunJob *chaosv1.TestRunJob, scheduledTime tim
 					Containers: []corev1.Container{
 						{
 							Name:  kubectlContainerName,
-							Image: jobImage,
+							Image: testRunJob.Spec.Image,
 							Command: []string{
 								"/bin/bash",
 							},
@@ -41,7 +41,7 @@ func constructJobForTestRunJob(testRunJob *chaosv1.TestRunJob, scheduledTime tim
 						},
 					},
 					RestartPolicy:      corev1.RestartPolicyOnFailure,
-					ServiceAccountName: testRunJob.Spec.ServiceAccountName,
+					ServiceAccountName: testRunJob.Spec.ServiceAccount,
 					Volumes: []corev1.Volume{
 						{
 							Name: "k6-yaml",

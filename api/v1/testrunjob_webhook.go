@@ -32,13 +32,17 @@ import (
 )
 
 // log is for logging in this package.
-var testrunjoblog = logf.Log.WithName("testrunjob-resource")
+var (
+	testrunjoblog = logf.Log.WithName("testrunjob-resource")
+	defaultImage  = "grafana/k6"
+)
 
 // SetupWebhookWithManager will setup the manager to manage the webhooks
 func SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).For(&TestRunJob{}).
 		WithValidator(&TestRunJobCustomValidator{}).
 		WithDefaulter(&TestRunJobCustomDefaulter{
+			DefaultImage:                      defaultImage,
 			DefaultSuspend:                    false,
 			DefaultRunOnce:                    true,
 			DefaultTestRunCount:               0,
@@ -54,6 +58,7 @@ func SetupWebhookWithManager(mgr ctrl.Manager) error {
 // +kubebuilder:webhook:path=/mutate-chaos-galah-monitoring-io-v1-testrunjob,mutating=true,failurePolicy=fail,sideEffects=None,groups=chaos.galah-monitoring.io,resources=testrunjobs,verbs=create;update,versions=v1,name=mtestrunjob.kb.io,admissionReviewVersions=v1
 
 type TestRunJobCustomDefaulter struct {
+	DefaultImage                      string
 	DefaultSuspend                    bool
 	DefaultRunOnce                    bool
 	DefaultTestRunCount               int32
@@ -104,6 +109,10 @@ func (d *TestRunJobCustomDefaulter) applyDefaults(ctx context.Context, testRunJo
 	if testRunJob.Spec.TestRunCount != nil {
 		testRunJob.Spec.TestRunCount = new(int32)
 		*testRunJob.Spec.TestRunCount = d.DefaultTestRunCount
+	}
+
+	if testRunJob.Spec.Image == "" {
+		testRunJob.Spec.Image = d.DefaultImage
 	}
 }
 
