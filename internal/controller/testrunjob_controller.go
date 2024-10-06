@@ -197,25 +197,30 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	scriptVersion, err := r.getScriptConfigMapForJob(ctx, &testRunJob)
 	if err != nil {
 		logger.Error(err, "unable to get script config map")
-		return scheduleResult, err
+		return ctrl.Result{}, err
 	}
 
 	envVersion, err := r.getEnvConfigMapForJob(ctx, &testRunJob)
 	if err != nil {
 		logger.Error(err, "unable to get or create env config map")
-		return scheduleResult, err
+		return ctrl.Result{}, err
 	}
 	count := *testRunJob.Spec.TestRunCount + 1
 
 	k6ConfigMap, err := r.createTestRunConfigMap(&testRunJob, count)
 	if err != nil {
 		logger.Error(err, "unable to create test run config map")
-		return scheduleResult, err
+		return ctrl.Result{}, err
 	}
 	err = r.Create(ctx, k6ConfigMap)
 	if err != nil {
 		logger.Error(err, "unable to create k6 test run config map")
-		return scheduleResult, err
+		return ctrl.Result{}, err
+	}
+
+	if err = r.Update(ctx, &testRunJob); err != nil {
+		logger.Error(err, "unable to update job config maps")
+		return ctrl.Result{}, err
 	}
 
 	job, err := constructJobForTestRunJob(&testRunJob, missedRun, scriptVersion, envVersion, k6ConfigMap.Name)
@@ -236,6 +241,14 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+	runCount := *testRunJob.Spec.TestRunCount
+	runCount++
+	testRunJob.Spec.TestRunCount = &runCount
+	if err = r.Update(ctx, &testRunJob); err != nil {
+		logger.Error(err, "unable to update job test run count")
+		return ctrl.Result{}, err
+	}
+
 	TestRunJobReconcileTotal.WithLabelValues(testRunJob.Name)
 
 	return ctrl.Result{}, nil

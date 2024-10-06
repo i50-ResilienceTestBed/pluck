@@ -8,6 +8,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
+	"strings"
 )
 
 var (
@@ -26,7 +27,7 @@ func createK6TestRunForJob(testRunJob *chaosv1.TestRunJob, count int32) *k6.Test
 			},
 		})
 	}
-
+	args := addK6Tag(testRunJob.Spec.Args, testRunJob.Spec.TestName, *testRunJob.Spec.TestRunCount)
 	name := fmt.Sprintf("%s-%d", testRunJob.Name, count)
 	annotations := annotationsForK6(testRunJob.Name, count)
 	k6Run := &k6.TestRun{
@@ -43,7 +44,7 @@ func createK6TestRunForJob(testRunJob *chaosv1.TestRunJob, count int32) *k6.Test
 			},
 			Parallelism: 0,
 			Separate:    false,
-			Arguments:   testRunJob.Spec.Args,
+			Arguments:   args,
 			Ports:       nil,
 			Initializer: nil,
 			Runner: k6.Pod{
@@ -96,4 +97,10 @@ func (r *TestRunJobReconciler) createTestRunConfigMap(testRunJob *chaosv1.TestRu
 	}
 	return configMap, nil
 
+}
+
+func addK6Tag(args, name string, count int32) string {
+	tag := fmt.Sprintf("--tag test-id=%s=%d", name, count)
+	result := strings.Join([]string{tag, args}, " ")
+	return result
 }
