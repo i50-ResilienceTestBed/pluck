@@ -46,6 +46,16 @@ func (r *TestRunJobReconciler) getEnvConfigMapForJob(ctx context.Context, testRu
 		}
 		return "", err
 	}
+	if testRunJob.Spec.Env != nil && len(testRunJob.Spec.Env) > 0 {
+		for _, env := range testRunJob.Spec.Env {
+			foundConfigMap.Data[env.Name] = env.Value
+		}
+	}
+	err = r.Update(ctx, foundConfigMap)
+	if err != nil {
+		return "", err
+	}
+
 	configMapVersion = foundConfigMap.ResourceVersion
 	return configMapVersion, nil
 }

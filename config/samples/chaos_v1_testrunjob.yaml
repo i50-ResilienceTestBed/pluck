@@ -6,4 +6,20 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: testrunjob-sample
 spec:
+  testName: "k6-test"
+  serviceAccountName: "k6-galah-testbed"
+  scriptConfigMap: ""
+  envConfigMap: ""
+  env:
+  args: ""
+  schedule:
+    minute: "*/15"
+  startingDeadlineSeconds: 60
+  jobTemplate:
+    labels:
+      - "hello": "goodbye"
+    annotations:
+      "goodbye": "hello"
+
+
   # TODO(user): Add fields here
