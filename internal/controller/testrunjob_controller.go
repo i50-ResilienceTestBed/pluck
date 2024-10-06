@@ -44,6 +44,8 @@ type TestRunJobReconciler struct {
 
 var (
 	scheduledTimeAnnotation = "chaos.galah-monitoring.io/scheduled-at"
+	scriptVersionAnnotation = "chaos.galah-monitoring.io/script-version"
+	envVersionAnnotation    = "chaos.galah-monitoring.io/env-version"
 )
 
 type Clock interface {
@@ -196,6 +198,44 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if tooLate {
 		logger.V(1).Info("missed deadline for last run, skipping")
 		return scheduleResult, nil
+	}
+
+	scriptVersion, err := r.getScriptConfigMapForJob(ctx, &testRunJob)
+	if err != nil {
+		logger.Error(err, "unable to get script config map")
+		return scheduleResult, err
+	}
+
+	envVersion, err := r.getEnvConfigMapForJob(ctx, &testRunJob)
+	if err != nil {
+		logger.Error(err, "unable to get or create env config map")
+		return scheduleResult, err
+	}
+	count := *testRunJob.Spec.TestRunCount + 1
+
+	k6ConfigMap, err := r.createTestRunConfigMap(&testRunJob, count)
+	if err != nil {
+		logger.Error(err, "unable to create test run config map")
+		return scheduleResult, err
+	}
+	err = r.Create(ctx, k6ConfigMap)
+	if err != nil {
+		logger.Error(err, "unable to create k6 test run config map")
+		return scheduleResult, err
+	}
+
+	job, err := constructJobForTestRunJob(&testRunJob, missedRun, scriptVersion, envVersion, k6ConfigMap.Name)
+	if err != nil {
+		logger.Error(err, "unable to create job")
+		return scheduleResult, err
+	}
+	job.Annotations[scriptVersionAnnotation] = scriptVersion
+	job.Annotations[scheduledTimeAnnotation] = missedRun.Format(time.RFC3339)
+	job.Annotations[envVersionAnnotation] = envVersion
+
+	err = r.Create(ctx, job)
+	if err != nil {
+
 	}
 
 	return ctrl.Result{}, nil

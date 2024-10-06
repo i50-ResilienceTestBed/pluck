@@ -73,7 +73,7 @@ func annotationsForK6(name string, count int32) map[string]string {
 	return annotations
 }
 
-func createTestRunConfigMap(testRunJob *chaosv1.TestRunJob, count int32) (*corev1.ConfigMap, error) {
+func (r *TestRunJobReconciler) createTestRunConfigMap(testRunJob *chaosv1.TestRunJob, count int32) (*corev1.ConfigMap, error) {
 	k6Run := createK6TestRunForJob(testRunJob, count)
 	if k6Run == nil {
 		return nil, fmt.Errorf("could not create K6 TestRun")

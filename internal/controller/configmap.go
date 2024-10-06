@@ -15,42 +15,44 @@ const (
 	envConfigMapField = ""
 )
 
-func (r *TestRunJobReconciler) getScriptConfigMapForJob(ctx context.Context, testRunJob *chaosv1.TestRunJob) (*corev1.ConfigMap, string, error) {
+func (r *TestRunJobReconciler) getScriptConfigMapForJob(ctx context.Context, testRunJob *chaosv1.TestRunJob) (string, error) {
 	var configMapVersion string
 	configMapName := testRunJob.Spec.ScriptConfigMap
 	foundConfigMap := &corev1.ConfigMap{}
 	err := r.Get(ctx, types.NamespacedName{Name: configMapName, Namespace: testRunJob.Namespace}, foundConfigMap)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			return nil, "", fmt.Errorf("configMap %s not found", configMapName)
+			return "", fmt.Errorf("configMap %s not found", configMapName)
 		} else {
-			return nil, "", err
+			return "", err
 		}
 	}
 	configMapVersion = foundConfigMap.ResourceVersion
 
-	return foundConfigMap, configMapVersion, nil
+	return configMapVersion, nil
 }
 
-func (r *TestRunJobReconciler) getEnvConfigMapForJob(ctx context.Context, testRunJob *chaosv1.TestRunJob) (*corev1.ConfigMap, error) {
+func (r *TestRunJobReconciler) getEnvConfigMapForJob(ctx context.Context, testRunJob *chaosv1.TestRunJob) (string, error) {
 	if testRunJob.Spec.EnvConfigMap == "" && (testRunJob.Spec.Env == nil || len(testRunJob.Spec.Env) == 0) {
-		return nil, nil
+		return "", nil
 	}
+	var configMapVersion string
 	foundConfigMap := &corev1.ConfigMap{}
 	configMapName := testRunJob.Spec.EnvConfigMap
 	err := r.Get(ctx, types.NamespacedName{Name: configMapName, Namespace: testRunJob.Namespace}, foundConfigMap)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			return nil, nil
+			return r.createEnvConfigMapForJob(ctx, testRunJob)
 		}
-		return nil, err
+		return "", err
 	}
-	return foundConfigMap, nil
+	configMapVersion = foundConfigMap.ResourceVersion
+	return configMapVersion, nil
 }
 
-func (r *TestRunJobReconciler) createEnvConfigMapForJob(ctx context.Context, testRunJob *chaosv1.TestRunJob) (*corev1.ConfigMap, string, error) {
+func (r *TestRunJobReconciler) createEnvConfigMapForJob(ctx context.Context, testRunJob *chaosv1.TestRunJob) (string, error) {
 	if testRunJob.Spec.Env == nil || len(testRunJob.Spec.Env) == 0 {
-		return nil, "", nil
+		return "", nil
 	}
 	var configMapVersion string
 	configMapName := fmt.Sprintf("%s-env", testRunJob.Spec.ScriptConfigMap)
@@ -68,9 +70,10 @@ func (r *TestRunJobReconciler) createEnvConfigMapForJob(ctx context.Context, tes
 
 	err := r.Create(ctx, configMap)
 	if err != nil {
-		return nil, configMapVersion, err
+		return configMapVersion, err
 	}
+	testRunJob.Spec.EnvConfigMap = configMap.Name
 	configMapVersion = configMap.ResourceVersion
 
-	return configMap, configMapVersion, nil
+	return configMapVersion, nil
 }

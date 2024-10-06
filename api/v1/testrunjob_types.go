@@ -17,7 +17,6 @@ limitations under the License.
 package v1
 
 import (
-	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
@@ -60,8 +59,9 @@ type TestRunJobSpec struct {
 	// +optional
 	RunOnce *bool `json:"runOnce,omitempty"`
 
-	// Specifies the job that will be created when executing a CronJob.
-	JobTemplate batchv1.JobTemplateSpec `json:"jobTemplate"`
+	//// Specifies the job that will be created when executing a CronJob.
+	//JobTemplate batchv1.JobTemplateSpec `json:"jobTemplate"`
+	JobTemplate JobTemplate `json:"jobTemplate"`
 
 	// +kubebuilder:validation:Minimum=0
 	// +optional
@@ -143,6 +143,11 @@ func (s *TestRunJob) GetScheduleString() (string, error) {
 	}
 	return strings.Join(scheduleParts, " "), nil
 
+}
+
+type JobTemplate struct {
+	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // +kubebuilder:object:root=true
