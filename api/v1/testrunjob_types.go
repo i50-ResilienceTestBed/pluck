@@ -123,23 +123,23 @@ type TestRunJob struct {
 	Status TestRunJobStatus `json:"status,omitempty"`
 }
 
-func (s *TestRunJob) GetScheduleString() (string, error) {
-	sched := s.Spec.Schedule
+func (s *CronSchedule) GetScheduleString() (string, error) {
+
 	scheduleParts := []string{"*", "*", "*", "*", "*"}
-	if sched.Minute != nil {
-		scheduleParts[0] = string(*sched.Minute)
+	if s.Minute != nil {
+		scheduleParts[0] = string(*s.Minute)
 	}
-	if sched.Hour != nil {
-		scheduleParts[1] = string(*sched.Hour)
+	if s.Hour != nil {
+		scheduleParts[1] = string(*s.Hour)
 	}
-	if sched.DayOfMonth != nil {
-		scheduleParts[2] = string(*sched.DayOfMonth)
+	if s.DayOfMonth != nil {
+		scheduleParts[2] = string(*s.DayOfMonth)
 	}
-	if sched.Month != nil {
-		scheduleParts[3] = string(*sched.Month)
+	if s.Month != nil {
+		scheduleParts[3] = string(*s.Month)
 	}
-	if sched.DayOfWeek != nil {
-		scheduleParts[4] = string(*sched.DayOfWeek)
+	if s.DayOfWeek != nil {
+		scheduleParts[4] = string(*s.DayOfWeek)
 	}
 	return strings.Join(scheduleParts, " "), nil
 

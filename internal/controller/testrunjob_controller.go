@@ -227,9 +227,14 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	job.Annotations[scheduledTimeAnnotation] = missedRun.Format(time.RFC3339)
 	job.Annotations[envVersionAnnotation] = envVersion
 
+	if err = ctrl.SetControllerReference(&testRunJob, job, r.Scheme); err != nil {
+		logger.Error(err, "unable to set controller reference for job")
+		return scheduleResult, err
+	}
+
 	err = r.Create(ctx, job)
 	if err != nil {
-
+		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
@@ -264,7 +269,7 @@ func getScheduledTimeForJob(job *kbatch.Job) (*time.Time, error) {
 }
 
 func getNextSchedule(job *chaosv1.TestRunJob, now time.Time) (lastMissed time.Time, next time.Time, err error) {
-	jobSched, err := job.GetScheduleString()
+	jobSched, err := job.Spec.Schedule.GetScheduleString()
 	if err != nil {
 		return time.Time{}, time.Time{}, err
 	}
