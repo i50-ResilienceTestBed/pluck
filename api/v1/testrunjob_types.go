@@ -46,7 +46,7 @@ type TestRunJobSpec struct {
 
 	Schedule CronSchedule `json:"schedule"`
 
-	//+kubebuilder:validation:MinLength=0
+	//+optional
 	Image string `json:"image"`
 
 	// +kubebuilder:validation:Minimum=0
@@ -96,7 +96,7 @@ type TestRunJobStatus struct {
 	LastScheduleTime *metav1.Time `json:"lastScheduleTime,omitempty"`
 
 	// +optional
-	FinishedAt metav1.Time `json:"finishedAt,omitempty"`
+	FinishedAt *metav1.Time `json:"finishedAt,omitempty"`
 }
 
 type CronSchedule struct {

@@ -34,7 +34,7 @@ import (
 // log is for logging in this package.
 var (
 	testrunjoblog = logf.Log.WithName("testrunjob-resource")
-	defaultImage  = "grafana/k6"
+	defaultImage  = "docker.io/grafana/k6"
 )
 
 // SetupWebhookWithManager will setup the manager to manage the webhooks

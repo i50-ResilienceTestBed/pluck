@@ -83,6 +83,12 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	var failedJobs []*kbatch.Job
 	var mostRecentTime *time.Time
 
+	checkRunOnce := func(job *chaosv1.TestRunJob) {
+		if job.Spec.RunOnce != nil && *job.Spec.RunOnce == false {
+			job.Status.FinishedAt = &metav1.Time{Time: r.Clock.Now()}
+		}
+	}
+
 	for i, job := range childJobs.Items {
 		_, finishedType := isJobFinished(&job)
 		switch finishedType {
@@ -90,8 +96,10 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			activeJobs = append(activeJobs, &childJobs.Items[i])
 		case kbatch.JobFailed:
 			failedJobs = append(failedJobs, &childJobs.Items[i])
+			checkRunOnce(&testRunJob)
 		case kbatch.JobComplete:
 			successfulJobs = append(successfulJobs, &childJobs.Items[i])
+			checkRunOnce(&testRunJob)
 		}
 		scheduledTime, err := getScheduledTimeForJob(&job)
 		if err != nil {
@@ -167,6 +175,11 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	if testRunJob.Spec.Suspend != nil && *testRunJob.Spec.Suspend {
 		logger.V(1).Info("test run job suspended, skipping")
+		return ctrl.Result{}, nil
+	}
+
+	if testRunJob.Status.FinishedAt != nil {
+		logger.V(1).Info("test run job finished, skipping")
 		return ctrl.Result{}, nil
 	}
 
@@ -269,6 +282,10 @@ func isJobFinished(job *kbatch.Job) (bool, kbatch.JobConditionType) {
 	}
 	return false, ""
 }
+
+//func checkRunOnce(job *chaosv1.TestRunJob) {
+//
+//}
 
 func getScheduledTimeForJob(job *kbatch.Job) (*time.Time, error) {
 	timeRaw := job.Annotations[scheduledTimeAnnotation]
