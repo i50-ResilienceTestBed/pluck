@@ -35,53 +35,6 @@ func createK6TestRunForJob(testRunJob *chaosv1.TestRunJob, count int32) *TestRun
 	name := fmt.Sprintf("%s-%d", testRunJob.Name, count)
 	annotations := annotationsForK6(testRunJob.Name, count)
 	file := fmt.Sprintf("%s.js", testRunJob.Spec.TestName)
-	//privileged := true
-	//nonRoot := false
-
-	//k6Run := &k6.TestRun{
-	//	TypeMeta: metav1.TypeMeta{
-	//		Kind:       "TestRun",
-	//		APIVersion: "k6.io/v1alpha1",
-	//	},
-	//	ObjectMeta: metav1.ObjectMeta{
-	//		Name:      name,
-	//		Namespace: testRunJob.Namespace,
-	//	},
-	//k6Spec := &k6.TestRunSpec{
-	//	Script: k6.K6Script{
-	//		ConfigMap: k6.K6Configmap{
-	//			Name: testRunJob.Spec.TestName,
-	//			File: file,
-	//		},
-	//	},
-	//	Parallelism: 0,
-	//	Separate:    false,
-	//	Arguments:   args,
-	//	Ports:       nil,
-	//	Initializer: nil,
-	//	Runner: k6.Pod{
-	//		Image:           k6Image,
-	//		ImagePullPolicy: "IfNotPresent",
-	//		Metadata: k6.PodMetadata{
-	//			Annotations: annotations,
-	//			Labels:      make(map[string]string),
-	//		},
-	//		Resources:          corev1.ResourceRequirements{},
-	//		ServiceAccountName: testRunJob.Spec.ServiceAccount,
-	//		SecurityContext:    corev1.PodSecurityContext{},
-	//		ContainerSecurityContext: corev1.SecurityContext{
-	//			Privileged:               &privileged,
-	//			RunAsNonRoot:             &nonRoot,
-	//			ReadOnlyRootFilesystem:   nil,
-	//			AllowPrivilegeEscalation: nil,
-	//			ProcMount:                nil,
-	//			SeccompProfile:           nil,
-	//			AppArmorProfile:          nil,
-	//		},
-	//		EnvFrom: envFrom,
-	//	},
-	//	Cleanup: "post",
-	//}
 
 	spec := &TestRunWrapper{
 		APIVersion: k6ApiVersion,
@@ -120,17 +73,6 @@ func createK6TestRunForJob(testRunJob *chaosv1.TestRunJob, count int32) *TestRun
 			Cleanup:   "post",
 		},
 	}
-
-	//wrapper := &TestRunWrapper{
-	//	APIVersion: k6ApiVersion,
-	//	Kind:       "TestRun",
-	//	Metadata: metav1.ObjectMeta{
-	//		Name:      name,
-	//		Namespace: testRunJob.Namespace,
-	//	},
-	//	Spec: spec,
-	//}
-
 	log.Printf("Creating K6 TestRun %s", spec.Metadata.Name)
 	return spec
 }
@@ -176,9 +118,6 @@ func (r *TestRunJobReconciler) createTestRunConfigMap(testRunJob *chaosv1.TestRu
 			Namespace: testRunJob.Namespace,
 		},
 		Immutable: nil,
-		//BinaryData: map[string][]byte{
-		//	`k6.yaml`: bytes,
-		//},
 		Data: map[string]string{
 			`k6.yaml`: string(bytes),
 		},
@@ -207,41 +146,6 @@ type WrapperMeta struct {
 	Name      string `yaml:"name"`
 	Namespace string `yaml:"namespace"`
 }
-
-//type Wrapper struct {
-//	APIVersion string            `yaml:"apiVersion"`
-//	Kind       string            `yaml:"kind"`
-//	Metadata   metav1.ObjectMeta `yaml:"metadata"`
-//	Spec       struct {
-//		Parallelism int `yaml:"parallelism"`
-//		Script      struct {
-//			ConfigMap struct {
-//				Name string `yaml:"name"`
-//				File string `yaml:"file"`
-//			} `yaml:"configMap"`
-//		} `yaml:"script"`
-//		Runner struct {
-//			Image    string `yaml:"image"`
-//			Metadata struct {
-//				Labels      map[string]string `yaml:"labels"`
-//				Annotations map[string]string `yaml:"annotations"`
-//			} `yaml:"metadata"`
-//			SecurityContext struct {
-//				RunAsNonRoot bool `yaml:"runAsNonRoot"`
-//			} `yaml:"securityContext"`
-//			Resources struct {
-//				Limits struct {
-//					CPU    string `yaml:"cpu,omitempty"`
-//					Memory string `yaml:"memory,omitempty"`
-//				} `yaml:"limits"`
-//				Requests struct {
-//					CPU    string `yaml:"cpu,omitempty"`
-//					Memory string `yaml:"memory,omitempty"`
-//				} `yaml:"requests,omitempty"`
-//			} `yaml:"resources"`
-//		} `yaml:"runner"`
-//	} `yaml:"spec"`
-//}
 
 type SpecWrapper struct {
 	Parallelism int           `yaml:"parallelism,omitempty"`

@@ -250,11 +250,6 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	}
 
-	//if err = r.Status().Update(ctx, &testRunJob); err != nil {
-	//	logger.Error(err, "unable to update job status config maps")
-	//	return ctrl.Result{}, err
-	//}
-
 	job, err := constructJobForTestRunJob(&testRunJob, missedRun, scriptVersion, envVersion, k6ConfigMap.Name)
 	if err != nil {
 		logger.Error(err, "unable to create job")
