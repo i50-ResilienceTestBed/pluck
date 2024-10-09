@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	chaosv1 "github.com/maliciousbucket/pluck/api/v1"
 	kbatch "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -14,9 +15,14 @@ var (
 )
 
 func constructJobForTestRunJob(testRunJob *chaosv1.TestRunJob, scheduledTime time.Time, scriptVer, envVer, k6Map string) (*kbatch.Job, error) {
-
+	name := fmt.Sprintf("%s-%d", testRunJob.Name, scheduledTime.Unix())
 	job := &kbatch.Job{
-		ObjectMeta: metav1.ObjectMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      make(map[string]string),
+			Annotations: make(map[string]string),
+			Name:        name,
+			Namespace:   testRunJob.Namespace,
+		},
 		Spec: kbatch.JobSpec{
 			Parallelism: nil,
 			Template: corev1.PodTemplateSpec{
@@ -59,8 +65,10 @@ func constructJobForTestRunJob(testRunJob *chaosv1.TestRunJob, scheduledTime tim
 		},
 	}
 
-	for k, v := range testRunJob.Spec.JobTemplate.Annotations {
-		job.Annotations[k] = v
+	if testRunJob.Spec.JobTemplate.Annotations != nil && len(testRunJob.Spec.JobTemplate.Annotations) > 0 {
+		for k, v := range testRunJob.Spec.JobTemplate.Annotations {
+			job.Annotations[k] = v
+		}
 	}
 
 	job.Annotations[scheduledTimeAnnotation] = scheduledTime.Format(time.RFC3339)
@@ -68,9 +76,10 @@ func constructJobForTestRunJob(testRunJob *chaosv1.TestRunJob, scheduledTime tim
 	if envVer != "" {
 		job.Annotations[envVersionAnnotation] = envVer
 	}
-
-	for k, v := range testRunJob.Spec.JobTemplate.Labels {
-		job.Labels[k] = v
+	if testRunJob.Spec.JobTemplate.Labels != nil && len(testRunJob.Spec.JobTemplate.Labels) > 0 {
+		for k, v := range testRunJob.Spec.JobTemplate.Labels {
+			job.Labels[k] = v
+		}
 	}
 
 	return job, nil

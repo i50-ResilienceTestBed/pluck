@@ -84,7 +84,7 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	var mostRecentTime *time.Time
 
 	checkRunOnce := func(job *chaosv1.TestRunJob) {
-		if job.Spec.RunOnce != nil && *job.Spec.RunOnce == false {
+		if job.Spec.RunOnce != nil && *job.Spec.RunOnce == true {
 			job.Status.FinishedAt = &metav1.Time{Time: r.Clock.Now()}
 		}
 	}
@@ -218,17 +218,23 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.Error(err, "unable to get or create env config map")
 		return ctrl.Result{}, err
 	}
+	if testRunJob.Spec.TestRunCount == nil {
+		runCount := int32(0)
+		testRunJob.Spec.TestRunCount = &runCount
+	}
 	count := *testRunJob.Spec.TestRunCount + 1
 
-	k6ConfigMap, err := r.createTestRunConfigMap(&testRunJob, count)
+	k6ConfigMap, create, err := r.getOrCreateTestRunMap(ctx, &testRunJob, count)
 	if err != nil {
 		logger.Error(err, "unable to create test run config map")
 		return ctrl.Result{}, err
 	}
-	err = r.Create(ctx, k6ConfigMap)
-	if err != nil {
-		logger.Error(err, "unable to create k6 test run config map")
-		return ctrl.Result{}, err
+	if create {
+		err = r.Create(ctx, k6ConfigMap)
+		if err != nil {
+			logger.Error(err, "unable to create k6 test run config map")
+			return ctrl.Result{}, err
+		}
 	}
 
 	if err = r.Update(ctx, &testRunJob); err != nil {
@@ -282,10 +288,6 @@ func isJobFinished(job *kbatch.Job) (bool, kbatch.JobConditionType) {
 	}
 	return false, ""
 }
-
-//func checkRunOnce(job *chaosv1.TestRunJob) {
-//
-//}
 
 func getScheduledTimeForJob(job *kbatch.Job) (*time.Time, error) {
 	timeRaw := job.Annotations[scheduledTimeAnnotation]

@@ -1,12 +1,15 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	k6 "github.com/grafana/k6-operator/api/v1alpha1"
 	chaosv1 "github.com/maliciousbucket/pluck/api/v1"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"log"
 	"strings"
 )
@@ -30,6 +33,7 @@ func createK6TestRunForJob(testRunJob *chaosv1.TestRunJob, count int32) *k6.Test
 	args := addK6Tag(testRunJob.Spec.Args, testRunJob.Spec.TestName, *testRunJob.Spec.TestRunCount)
 	name := fmt.Sprintf("%s-%d", testRunJob.Name, count)
 	annotations := annotationsForK6(testRunJob.Name, count)
+	file := fmt.Sprintf("%s.js", testRunJob.Spec.TestName)
 	k6Run := &k6.TestRun{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -38,8 +42,8 @@ func createK6TestRunForJob(testRunJob *chaosv1.TestRunJob, count int32) *k6.Test
 		Spec: k6.TestRunSpec{
 			Script: k6.K6Script{
 				ConfigMap: k6.K6Configmap{
-					Name: name,
-					File: "k6.yaml",
+					Name: testRunJob.Spec.TestName,
+					File: file,
 				},
 			},
 			Parallelism: 0,
@@ -74,14 +78,27 @@ func annotationsForK6(name string, count int32) map[string]string {
 	return annotations
 }
 
-func (r *TestRunJobReconciler) createTestRunConfigMap(testRunJob *chaosv1.TestRunJob, count int32) (*corev1.ConfigMap, error) {
+func (r *TestRunJobReconciler) getOrCreateTestRunMap(ctx context.Context, testRunJob *chaosv1.TestRunJob, count int32) (*corev1.ConfigMap, bool, error) {
+	foundConfigMap := &corev1.ConfigMap{}
+	name := fmt.Sprintf("%s-%d", testRunJob.Name, count)
+	err := r.Get(ctx, types.NamespacedName{Name: name, Namespace: testRunJob.Namespace}, foundConfigMap)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return r.createTestRunConfigMap(testRunJob, count)
+		}
+		return nil, false, err
+	}
+	return foundConfigMap, false, nil
+}
+
+func (r *TestRunJobReconciler) createTestRunConfigMap(testRunJob *chaosv1.TestRunJob, count int32) (*corev1.ConfigMap, bool, error) {
 	k6Run := createK6TestRunForJob(testRunJob, count)
 	if k6Run == nil {
-		return nil, fmt.Errorf("could not create K6 TestRun")
+		return nil, false, fmt.Errorf("could not create K6 TestRun")
 	}
 	bytes, err := yaml.Marshal(k6Run)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	name := fmt.Sprintf("%s-%d", testRunJob.Name, count)
 
@@ -95,7 +112,7 @@ func (r *TestRunJobReconciler) createTestRunConfigMap(testRunJob *chaosv1.TestRu
 			"k6.yaml": string(bytes),
 		},
 	}
-	return configMap, nil
+	return configMap, true, nil
 
 }
 
