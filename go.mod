@@ -6,7 +6,9 @@ require (
 	github.com/grafana/k6-operator v0.0.17
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
+	github.com/prometheus/client_golang v1.19.1
 	github.com/robfig/cron v1.2.0
+	google.golang.org/appengine v1.6.7
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.31.0
 	k8s.io/apimachinery v0.31.0
@@ -59,7 +61,6 @@ require (
 	github.com/mstoykov/envconfig v1.5.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect

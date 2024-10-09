@@ -191,8 +191,7 @@ func (r *TestRunJobReconciler) createTestRunConfigMap(testRunJob *chaosv1.TestRu
 func addK6Tag(args, name string, count int32) string {
 	tag := fmt.Sprintf("--tag test-id=%s-%d", name, count)
 	result := strings.Join([]string{tag, args}, " ")
-	strings.CutPrefix(result, " ")
-	strings.CutSuffix(result, " ")
+	result = strings.TrimSpace(result)
 	return result
 
 }
