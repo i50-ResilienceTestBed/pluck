@@ -49,10 +49,6 @@ type TestRunJobSpec struct {
 	//+optional
 	Image string `json:"image"`
 
-	// +kubebuilder:validation:Minimum=0
-	// +optional
-	TestRunCount *int32 `json:"testRunCount,omitempty"`
-
 	// +optional
 	StartingDeadlineSeconds *int64 `json:"startingDeadlineSeconds,omitempty"`
 
@@ -91,6 +87,14 @@ type TestRunJobStatus struct {
 	// +optional
 	CurrentTestRun corev1.ObjectReference `json:"currentTestRun,omitempty"`
 
+	// +optional
+	ScriptConfigMap *corev1.ObjectReference `json:"scriptConfigMap,omitempty"`
+
+	// +optional
+	EnvConfigMap *corev1.ObjectReference `json:"envConfigMap,omitempty"`
+
+	TestRunCount int32 `json:"testRunCount,omitempty"`
+
 	// Information when was the last time the job was successfully scheduled.
 	// +optional
 	LastScheduleTime *metav1.Time `json:"lastScheduleTime,omitempty"`
@@ -101,18 +105,18 @@ type TestRunJobStatus struct {
 
 type CronSchedule struct {
 	// +optional
-	Minute *ConField `json:"minute,omitempty"`
+	Minute *CronField `json:"minute,omitempty"`
 	// +optional
-	Hour *ConField `json:"hour,omitempty"`
+	Hour *CronField `json:"hour,omitempty"`
 	// +optional
-	DayOfMonth *ConField `json:"dayOfMonth,omitempty"`
+	DayOfMonth *CronField `json:"dayOfMonth,omitempty"`
 	// +optional
-	Month *ConField `json:"month,omitempty"`
+	Month *CronField `json:"month,omitempty"`
 	// +optional
-	DayOfWeek *ConField `json:"dayOfWeek,omitempty"`
+	DayOfWeek *CronField `json:"dayOfWeek,omitempty"`
 }
 
-type ConField string
+type CronField string
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status

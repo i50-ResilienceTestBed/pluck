@@ -106,10 +106,10 @@ func (d *TestRunJobCustomDefaulter) applyDefaults(ctx context.Context, testRunJo
 		testRunJob.Spec.TestRunHistoryLimit = new(int32)
 		*testRunJob.Spec.TestRunHistoryLimit = d.DefaultTestRunHistoryLimit
 	}
-	if testRunJob.Spec.TestRunCount != nil {
-		testRunJob.Spec.TestRunCount = new(int32)
-		*testRunJob.Spec.TestRunCount = d.DefaultTestRunCount
-	}
+	//if testRunJob.Spec.TestRunCount != nil {
+	//	testRunJob.Spec.TestRunCount = new(int32)
+	//	*testRunJob.Spec.TestRunCount = d.DefaultTestRunCount
+	//}
 
 	if testRunJob.Spec.Image == "" {
 		testRunJob.Spec.Image = d.DefaultImage

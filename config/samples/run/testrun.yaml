@@ -1,0 +1,24 @@
+apiVersion: k6.io/v1alpha1
+kind: TestRun
+metadata:
+  name: testrunjob-sample-15
+  namespace: default
+spec:
+  parallelism: 1
+  script:
+    configMap:
+      name: test-script
+      file: test-script.js
+  runner:
+    image: docker.io/grafana/k6
+    imagePullPolicy: IfNotPresent
+    metadata:
+      labels:
+        foo: bar
+      annotations:
+        chaos.galah-monitoring.io/test: testrunjob-sample
+        chaos.galah-monitoring.io/test-run: "15"
+    securityContext:
+      runAsNonRoot: false
+  arguments: '--tag test-id=test-script-15'
+  cleanup: post
