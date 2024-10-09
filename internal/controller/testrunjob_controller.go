@@ -100,6 +100,7 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		case kbatch.JobComplete:
 			successfulJobs = append(successfulJobs, &childJobs.Items[i])
 			checkRunOnce(&testRunJob)
+
 		}
 		scheduledTime, err := getScheduledTimeForJob(&job)
 		if err != nil {
@@ -118,6 +119,8 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	} else {
 		testRunJob.Status.LastScheduleTime = nil
 	}
+
+	testRunJob.Status.Active = nil
 
 	for _, activeJob := range activeJobs {
 		jobRef, err := ref.GetReference(r.Scheme, activeJob)
@@ -186,7 +189,7 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	missedRun, nextRun, err := getNextSchedule(&testRunJob, r.Now())
 	if err != nil {
 		logger.Error(err, "unable to get next cron schedule")
-		return ctrl.Result{}, nil
+		return ctrl.Result{}, err
 	}
 
 	scheduleResult := ctrl.Result{RequeueAfter: nextRun.Sub(r.Now())}
@@ -206,28 +209,38 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		logger.V(1).Info("missed deadline for last run, skipping")
 		return scheduleResult, nil
 	}
+	var scriptVersion string
+	if testRunJob.Status.ScriptConfigMap == nil {
+		logger.V(1).Info("no script config map, getting")
 
-	scriptVersion, err := r.getScriptConfigMapForJob(ctx, &testRunJob)
-	if err != nil {
-		logger.Error(err, "unable to get script config map")
-		return ctrl.Result{}, err
+		scriptVersion, err = r.getScriptConfigMapForJob(ctx, &testRunJob, req)
+		if err != nil {
+			logger.Error(err, "unable to get script config map")
+			return scheduleResult, err
+		}
 	}
 
-	envVersion, err := r.getEnvConfigMapForJob(ctx, &testRunJob)
-	if err != nil {
-		logger.Error(err, "unable to get or create env config map")
-		return ctrl.Result{}, err
+	var envVersion string
+	if (testRunJob.Spec.EnvConfigMap != "" || len(testRunJob.Spec.Env) > 0) && testRunJob.Status.EnvConfigMap == nil {
+		logger.V(1).Info("no env config map, getting")
+		envVersion, err = r.getEnvConfigMapForJob(ctx, &testRunJob, req)
+		if err != nil {
+			logger.Error(err, "unable to get or create env config map")
+			return scheduleResult, err
+		}
 	}
-	if testRunJob.Spec.TestRunCount == nil {
-		runCount := int32(0)
-		testRunJob.Spec.TestRunCount = &runCount
-	}
-	count := *testRunJob.Spec.TestRunCount + 1
 
-	k6ConfigMap, create, err := r.getOrCreateTestRunMap(ctx, &testRunJob, count)
+	testRunJob.Status.TestRunCount++
+	logger.V(1).Info("job run count", "count", testRunJob.Status.TestRunCount)
+	if err = r.Status().Update(ctx, &testRunJob); err != nil {
+		logger.Error(err, "unable to update job test run count")
+		return scheduleResult, err
+	}
+
+	k6ConfigMap, create, err := r.getOrCreateTestRunMap(ctx, &testRunJob, testRunJob.Status.TestRunCount)
 	if err != nil {
 		logger.Error(err, "unable to create test run config map")
-		return ctrl.Result{}, err
+		return scheduleResult, err
 	}
 	if create {
 		err = r.Create(ctx, k6ConfigMap)
@@ -237,10 +250,10 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	}
 
-	if err = r.Update(ctx, &testRunJob); err != nil {
-		logger.Error(err, "unable to update job config maps")
-		return ctrl.Result{}, err
-	}
+	//if err = r.Status().Update(ctx, &testRunJob); err != nil {
+	//	logger.Error(err, "unable to update job status config maps")
+	//	return ctrl.Result{}, err
+	//}
 
 	job, err := constructJobForTestRunJob(&testRunJob, missedRun, scriptVersion, envVersion, k6ConfigMap.Name)
 	if err != nil {
@@ -260,17 +273,10 @@ func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	runCount := *testRunJob.Spec.TestRunCount
-	runCount++
-	testRunJob.Spec.TestRunCount = &runCount
-	if err = r.Update(ctx, &testRunJob); err != nil {
-		logger.Error(err, "unable to update job test run count")
-		return ctrl.Result{}, err
-	}
 
 	TestRunJobReconcileTotal.WithLabelValues(testRunJob.Name)
 
-	return ctrl.Result{}, nil
+	return scheduleResult, nil
 }
 
 var (

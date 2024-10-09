@@ -179,7 +179,7 @@ var _ = Describe("TestRunJob Controller", func() {
 			By("By crating a new TestRunJob")
 			//ctx := context.Background()
 			//accountName := fmt.Sprintf("k6-%s", TestRunJobNamespace)
-			minute := chaosv1.ConField("1")
+			minute := chaosv1.CronField("1")
 			testrunjob := &chaosv1.TestRunJob{
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: "chaos.galah-monitoring.io/v1",
@@ -199,8 +199,8 @@ var _ = Describe("TestRunJob Controller", func() {
 					Schedule: chaosv1.CronSchedule{
 						Minute: &minute,
 					},
-					Image:                   "docker.io/grafana/k6",
-					TestRunCount:            nil,
+					Image: "docker.io/grafana/k6",
+					//TestRunCount:            nil,
 					StartingDeadlineSeconds: nil,
 					Suspend:                 nil,
 					RunOnce:                 nil,
