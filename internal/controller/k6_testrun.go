@@ -35,6 +35,10 @@ func createK6TestRunForJob(testRunJob *chaosv1.TestRunJob, count int32) *TestRun
 	name := fmt.Sprintf("%s-%d", testRunJob.Name, count)
 	annotations := annotationsForK6(testRunJob.Name, count)
 	file := fmt.Sprintf("%s.js", testRunJob.Spec.TestName)
+	image := k6Image
+	if testRunJob.Spec.Image != "" {
+		image = testRunJob.Spec.Image
+	}
 
 	spec := &TestRunWrapper{
 		APIVersion: k6ApiVersion,
@@ -52,7 +56,7 @@ func createK6TestRunForJob(testRunJob *chaosv1.TestRunJob, count int32) *TestRun
 				}{Name: testRunJob.Spec.TestName, File: file},
 			},
 			Runner: RunnerWrapper{
-				Image:           k6Image,
+				Image:           image,
 				ImagePullPolicy: "IfNotPresent",
 				Metadata: struct {
 					Labels      map[string]string `yaml:"labels"`
