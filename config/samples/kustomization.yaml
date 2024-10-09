@@ -3,3 +3,10 @@ resources:
 - chaos_v1_testrunjob.yaml
 - chaos_v1_testrun.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples
+
+configMapGenerator:
+  - name: test-script
+    files:
+      - ./scripts/test-script.js
+    options:
+      disableNameSuffixHash: true

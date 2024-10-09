@@ -6,14 +6,15 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: testrunjob-sample
 spec:
-  testName: "k6-test"
-  serviceAccount: "k6-galah-testbed"
-  scriptConfigMap: ""
+  testName: "test-script"
+  serviceAccount: "k6-default"
+  scriptConfigMap: "test-script"
   envConfigMap: ""
+  image: docker.io/grafana/k6
   env:
   args: ""
   schedule:
-    minute: "*/15"
+    minute: "*/5"
   startingDeadlineSeconds: 60
   jobTemplate:
     labels:
