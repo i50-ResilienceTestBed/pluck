@@ -11,7 +11,8 @@ import (
 
 var (
 	kubectlContainerName = "kubectl"
-	applyK6TestRunArg    = `kubectl delete -f /tmp/k6.yaml; kubectl apply -f /tmp/k6.yaml`
+	applyK6TestRunArg    = ` kubectl apply -f /tmp/k6.yaml --validate=false`
+	//applyK6TestRunArg    = `kubectl delete -f /tmp/k6.yaml; kubectl apply -f /tmp/k6.yaml`
 )
 
 func constructJobForTestRunJob(testRunJob *chaosv1.TestRunJob, scheduledTime time.Time, scriptVer, envVer, k6Map string) (*kbatch.Job, error) {

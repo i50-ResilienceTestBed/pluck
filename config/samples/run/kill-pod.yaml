@@ -1,0 +1,24 @@
+apiVersion: chaos.galah-monitoring.io/v1
+kind: TestRunJob
+metadata:
+  labels:
+    app.kubernetes.io/name: pluck
+    app.kubernetes.io/managed-by: kustomize
+  name: kill-pod-sample
+spec:
+  testName: kill-pod
+  serviceAccount: k6
+  scriptConfigMap: kill-pod
+  envConfigMap: kill-pod-env
+  image: docker.io/grafana/k6
+  #  runOnce: true
+  env:
+  args: ""
+  schedule:
+    minute: "*/2"
+  startingDeadlineSeconds: 60
+  jobTemplate:
+    labels:
+      "hello": "goodbye"
+    annotations:
+      "goodbye": "hello"

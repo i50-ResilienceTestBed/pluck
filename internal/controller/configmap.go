@@ -69,6 +69,9 @@ func (r *TestRunJobReconciler) getScriptConfigMapForJob(ctx context.Context, tes
 	testRunJob.Status.ScriptConfigMap = configMapRef
 	if foundConfigMap.Labels[testNameLabel] != testRunJob.Spec.TestName {
 		logger.V(0).Info("Updating config map %s with name %s", "configmap", configMapName)
+		if foundConfigMap.Labels == nil {
+			foundConfigMap.Labels = map[string]string{}
+		}
 		foundConfigMap.Labels[testNameLabel] = testRunJob.Spec.TestName
 		if err = r.Update(ctx, foundConfigMap); err != nil {
 			return "", err
@@ -124,6 +127,9 @@ func (r *TestRunJobReconciler) getEnvConfigMapForJob(ctx context.Context, testRu
 		for _, env := range testRunJob.Spec.Env {
 			foundConfigMap.Data[env.Name] = env.Value
 		}
+	}
+	if foundConfigMap.Labels == nil {
+		foundConfigMap.Labels = make(map[string]string)
 	}
 	if foundConfigMap.Labels[testNameLabel] != testRunJob.Spec.TestName {
 		foundConfigMap.Labels[testNameLabel] = testRunJob.Spec.TestName

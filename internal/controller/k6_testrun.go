@@ -22,7 +22,7 @@ var (
 
 func createK6TestRunForJob(testRunJob *chaosv1.TestRunJob, count int32) *TestRunWrapper {
 	envFrom := []corev1.EnvFromSource{}
-	log.Printf("Creatign k6 map: %s", testRunJob.Name)
+	log.Printf("Creating k6 map: %s", testRunJob.Name)
 
 	if testRunJob.Spec.EnvConfigMap != "" {
 		envFrom = append(envFrom, corev1.EnvFromSource{
