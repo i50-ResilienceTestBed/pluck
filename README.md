@@ -1,6 +1,21 @@
 # pluck
 // TODO(user): Add simple overview of use/purpose
 
+## To Do List
+
+- Fix tests
+- Update README
+- Fix types
+- Add TestRun type
+  - Type
+  - Tests
+  - Controller
+- Add finalizers
+- Clean up
+- TestRunJob labels & Annotations
+- Cert Manager
+- WebHooks
+
 ## Description
 // TODO(user): An in-depth paragraph about your project and overview of use
 
@@ -12,17 +27,6 @@
 - kubectl version v1.11.3+.
 - Access to a Kubernetes v1.11.3+ cluster.
 
-### To Deploy on the cluster
-**Build and push your image to the location specified by `IMG`:**
-
-```sh
-make docker-build docker-push IMG=<some-registry>/pluck:tag
-```
-
-**NOTE:** This image ought to be published in the personal registry you specified.
-And it is required to have access to pull the image from the working environment.
-Make sure you have the proper permission to the registry if the above commands don’t work.
-
 **Install the CRDs into the cluster:**
 
 ```sh
@@ -32,7 +36,7 @@ make install
 **Deploy the Manager to the cluster with the image specified by `IMG`:**
 
 ```sh
-make deploy IMG=<some-registry>/pluck:tag
+make deploy IMG=docker.io/maliciousbucket/pluck:latest
 ```
 
 > **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin
@@ -66,27 +70,12 @@ make uninstall
 make undeploy
 ```
 
-## Project Distribution
+## Installation
 
-Following are the steps to build the installer and distribute this project to users.
-
-1. Build the installer for the image built and published in the registry:
+Run the following command to install the controller in the cluster:
 
 ```sh
-make build-installer IMG=<some-registry>/pluck:tag
-```
-
-NOTE: The makefile target mentioned above generates an 'install.yaml'
-file in the dist directory. This file contains all the resources built
-with Kustomize, which are necessary to install this project without
-its dependencies.
-
-2. Using the installer
-
-Users can just run kubectl apply -f <URL for YAML BUNDLE> to install the project, i.e.:
-
-```sh
-kubectl apply -f https://raw.githubusercontent.com/<org>/pluck/<tag or branch>/dist/install.yaml
+kubectl apply -f https://raw.githubusercontent.com/maliciousbucket/pluck/main/dist/install.yaml
 ```
 
 ## Contributing
