@@ -938,7 +938,7 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: controller:latest
+        image: docker.io/maliciousbucket/pluck:latest
         livenessProbe:
           httpGet:
             path: /healthz
