@@ -13,7 +13,6 @@
 - Add finalizers
 - Clean up
 - TestRunJob labels & Annotations
-- Cert Manager
 - WebHooks
 
 ## Description
@@ -49,8 +48,6 @@ You can apply the samples (examples) from the config/sample:
 kubectl apply -k config/samples/
 ```
 
->**NOTE**: Ensure that the samples has default values to test it out.
-
 ### To Uninstall
 **Delete the instances (CRs) from the cluster:**
 
@@ -68,6 +65,12 @@ make uninstall
 
 ```sh
 make undeploy
+```
+
+**Undeploy and remove CRDs from the cluster:**
+
+```sh
+kubectl delete -f https://raw.githubusercontent.com/maliciousbucket/pluck/main/dist/install.yaml
 ```
 
 ## Installation

@@ -11,7 +11,7 @@ spec:
   scriptConfigMap: test-script
   envConfigMap: ""
   image: docker.io/grafana/k6
-#  runOnce: true
+  runOnce: false
   env:
   args: ""
   schedule:
@@ -22,6 +22,3 @@ spec:
       "hello": "goodbye"
     annotations:
       "goodbye": "hello"
-
-
-  # TODO(user): Add fields here

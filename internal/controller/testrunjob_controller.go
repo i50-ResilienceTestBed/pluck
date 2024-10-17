@@ -61,7 +61,7 @@ func (_ realClock) Now() time.Time { return time.Now() }
 // +kubebuilder:rbac:groups=chaos.galah-monitoring.io,resources=testrunjobs/finalizers,verbs=update
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=batch,resources=jobs/status,verbs=get;
-// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;patch;update
 
 func (r *TestRunJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
