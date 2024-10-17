@@ -10,7 +10,7 @@ spec:
       name: test-script
       file: test-script.js
   runner:
-    image: docker.io/grafana/k6
+    image: docker.io/maliciousbucket/k6
     imagePullPolicy: IfNotPresent
     metadata:
       labels:
@@ -18,7 +18,5 @@ spec:
       annotations:
         chaos.galah-monitoring.io/test: testrunjob-sample
         chaos.galah-monitoring.io/test-run: "15"
-    securityContext:
-      runAsNonRoot: false
   arguments: '--tag test-id=test-script-15'
   cleanup: post

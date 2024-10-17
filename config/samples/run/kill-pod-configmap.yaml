@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    chaos.galah-monitoring.io/test: kill-pod
+  labels:
+    galah-monitoring.io/test-name: kill-pod
+  name: kill-pod
+data:
+  kill-pod.js: |-
+    import { ServiceDisruptor } from 'k6/x/disruptor';
+    import { PodDisruptor } from 'k6/x/disruptor';
+    import { check } from 'k6';
+    import http from 'k6/http';
+
+    const injectFaults = __ENV.DISRUPT || 0;
+
+    export default function () {
+
+        const res = http.get('http://localhost:30100/hello');
+
+        check(res, {
+            'Response status is 200': (r) => res.status === 200,
+        })
+    }
+
+    export function disrupt(data) {
+        if (injectFaults === 1) {
+            return
+        }
+        const disruptor = new ServiceDisruptor('demo-server', 'galah-testbed' );
+
+        const targets = disruptor.targets();
+        if (targets.length === 0) {
+            throw new Error("expected list to have one target");
+        }
+        console.log(targets)
+
+        const podCount = __ENV.PODS || 1;
+
+        console.log(podCount)
+
+        const fault = {
+            count: podCount,
+        }
+
+        disruptor.terminatePods(fault);
+
+
+
+    }
+
+    export const options = {
+        scenarios: {
+            load: {
+                executor: 'constant-arrival-rate',
+                rate: 30,
+                preAllocatedVUs: 10,
+                maxVUs: 30,
+                exec: 'default',
+                startTime: '5s',
+                duration: '45s',
+            },
+            disrupt: {
+                executor: 'shared-iterations',
+                iterations: 1,
+                vus: 1,
+                exec: 'disrupt',
+                startTime: '15s',
+            },
+        },
+    };
+immutable: false

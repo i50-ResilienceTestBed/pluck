@@ -10,12 +10,12 @@ spec:
   serviceAccount: k6
   scriptConfigMap: kill-pod
   envConfigMap: kill-pod-env
-  image: docker.io/grafana/k6
-  #  runOnce: true
+  image: docker.io/maliciousbucket/k6
   env:
-  args: ""
+  args: -e K6_PROMETHEUS_RW_SERVER_URL=http://alloy.galah-monitoring.svc.cluster.local:8081/api/v1/metrics/write -o experimental-prometheus-rw
+
   schedule:
-    minute: "*/2"
+    minute: "*/1"
   startingDeadlineSeconds: 60
   jobTemplate:
     labels:
